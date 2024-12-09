@@ -1,0 +1,86 @@
+a) Patrón de diseño
+Para implementar la operación numberOfRentalsWithDifferentOffices,
+el Patrón de Diseño Estrategia sería apropiado.
+Este patrón permite encapsular las distintas estrategias de conteo según los criterios de los alquileres
+(en este caso, diferencias entre oficinas de recogida y entrega). Este patrón facilita la extensión
+y el mantenimiento del código si se añaden nuevos criterios de filtrado en el futuro.
+
+Justificación:
+
+Encapsulación del criterio: El patrón estrategia encapsula la lógica de conteo de alquileres
+en clases específicas que implementan un método común.
+
+Reusabilidad: Si se necesitan otros métodos para filtrar alquileres basados en otros criterios,
+podemos reutilizar y extender las estrategias.
+
+Simplicidad en la clase Customer: Delegamos la lógica específica del conteo, manteniendo la clase Customer
+enfocada en su propósito principal.
+
+b) Modificación del diagrama de clases
+Aplicando el patrón Estrategia, necesitamos introducir una nueva interfaz RentalStrategy
+y al menos una implementación concreta para el cálculo del número de alquileres donde las oficinas son diferentes.
+Aquí está la descripción textual:
+
+Nueva clase: RentalStrategy con el método execute(customer: Customer): Integer.
+Implementación concreta: DifferentOfficeRentalStrategy que implementa la lógica para contar alquileres web
+con oficinas diferentes.
+Esto añade una asociación entre Customer y RentalStrategy. Actualizaré el diagrama textualmente como sigue:
+
+Customer
++ numberOfRentalsWithDifferentOffices(): Integer
+  - rentalStrategy: RentalStrategy
+
+RentalStrategy (interfaz)
++ execute(customer: Customer): Integer
+
+DifferentOfficeRentalStrategy
++ execute(customer: Customer): Integer
+
+c) Código Java
+A continuación, se muestra cómo sería el código Java para la operación:
+// Interfaz Strategy
+public interface RentalStrategy {
+    int execute(Customer customer);
+}
+
+// Implementación de la estrategia para oficinas diferentes
+public class DifferentOfficeRentalStrategy implements RentalStrategy {
+    @Override
+    public int execute(Customer customer) {
+        int count = 0;
+        for (Rental rental : customer.getRentals()) {
+            if (rental instanceof WebRental) {
+                WebRental webRental = (WebRental) rental;
+                if (!webRental.getPickUpOffice().equals(webRental.getDeliveryOffice())) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+}
+
+// Clase Customer con integración de la estrategia
+public class Customer {
+    private String dni;
+    private String name;
+    private List<Rental> rentals; // Alquileres realizados
+    private RentalStrategy rentalStrategy;
+
+    // Constructor
+    public Customer(String dni, String name, RentalStrategy rentalStrategy) {
+        this.dni = dni;
+        this.name = name;
+        this.rentalStrategy = rentalStrategy;
+        this.rentals = new ArrayList<>();
+    }
+
+    public List<Rental> getRentals() {
+        return rentals;
+    }
+
+    // Método para calcular el número de alquileres con oficinas diferentes
+    public int numberOfRentalsWithDifferentOffices() {
+        return rentalStrategy.execute(this);
+    }
+}
